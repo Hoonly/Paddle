@@ -517,6 +517,13 @@ static void OpBaseRunImpl(const framework::OperatorBase& op,
    * after the execution of op, but the original input is directly
    * overwritten in the previous dynamic graph implementation.
    */
+
+  struct timeval t1;
+  struct timeval t2;
+  if (std::getenv("XPU_PADDLE_OP_TIME") != nullptr) {
+    gettimeofday(&t1, NULL);
+  }
+
   auto prepared_op =
       PreparedOp::Prepare(ins, outs, *op_kernel, place, attrs, default_attrs);
   auto tmp_ins_ptr =
@@ -525,6 +532,21 @@ static void OpBaseRunImpl(const framework::OperatorBase& op,
     prepared_op.Run(ins, outs, attrs, default_attrs);
   } else {
     prepared_op.Run(*tmp_ins_ptr, outs, attrs, default_attrs);
+  }
+
+  if (std::getenv("XPU_PADDLE_OP_TIME") != nullptr) {
+    if (platform::is_xpu_place(place)) {
+      int r = xpu_wait();
+      PADDLE_ENFORCE_EQ(
+          r,
+          0,
+          platform::errors::InvalidArgument("not initialized.[", op.Type()));
+    }
+    gettimeofday(&t2, NULL);
+    uint32_t diff = 1000000 * (t2.tv_sec - t1.tv_sec) + t2.tv_usec - t1.tv_usec;
+    std::cout << "op_name " << op.Type() << " " << diff << " "
+              << prepared_op.kernel_type().place_ << " "
+              << prepared_op.kernel_type().data_type_ << std::endl;
   }
 
   VLOG(4) << LayerDebugString(op.Type(), ins, outs);
