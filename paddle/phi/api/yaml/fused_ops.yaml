@@ -71,6 +71,16 @@
     data_type : x
   optional : bias, branch, branch_max ,x_max
 
+- op : conv3d_xpu
+  args : (Tensor x, Tensor x_max, Tensor filter, Tensor filter_max, Tensor bias, Tensor branch, Tensor branch_max, int[] paddings, int[] dilations, int[] strides, str padding_algorithm, int groups, str data_format, int act_type, float act_param, DataType out_dtype)
+  output : Tensor(out), Tensor(out_max)
+  infer_meta :
+    func : Conv3dXPUInferMeta
+  kernel :
+    func : conv3d_xpu
+    data_type : x
+  optional : bias, branch, branch_max ,x_max
+
 - op : embedding_with_eltwise_add_xpu
   args : (Tensor[] ids, Tensor[] tables, Tensor mask, int64_t padding_idx)
   output: Tensor(out), Tensor(seq_lod), Tensor(max_seq_len)

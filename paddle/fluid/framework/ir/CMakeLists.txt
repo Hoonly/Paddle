@@ -246,6 +246,7 @@ if(WITH_XPU)
   pass_library(bn_act_xpu_fuse_pass inference DIR xpu DEPS ${XPU_PASS_DEPS})
   # pass_library(conv1d_xpu_fuse_pass inference DIR xpu DEPS ${XPU_PASS_DEPS})
   pass_library(conv2d_xpu_fuse_pass inference DIR xpu DEPS ${XPU_PASS_DEPS})
+  pass_library(conv3d_xpu_fuse_pass inference DIR xpu DEPS ${XPU_PASS_DEPS})
   pass_library(conv2d_bias_fuse_pass inference DIR xpu DEPS ${XPU_PASS_DEPS})
   pass_library(redundant_unsqueeze_squeeze_elimination_pass inference DIR xpu
                DEPS ${XPU_PASS_DEPS})
