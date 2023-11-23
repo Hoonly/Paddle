@@ -298,6 +298,7 @@ XPUOpMap& get_kl2_ops() {
                      phi::DataType::FLOAT16,
                      phi::DataType::FLOAT32,
                      phi::DataType::BOOL})},
+      {"erf", XPUKernelSet({phi::DataType::FLOAT32, phi::DataType::FLOAT16})},
       {"exp_grad", XPUKernelSet({phi::DataType::FLOAT32})},
       {"exp", XPUKernelSet({phi::DataType::FLOAT32})},
       {"expand_as_v2",
