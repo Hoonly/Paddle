@@ -14,7 +14,7 @@
 
 #include "paddle/phi/kernels/rrelu_kernel.h"
 
-#include "paddle/phi/backends/cpu/cpu_context.h"
+#include "paddle/phi/backends/xpu/enforce_xpu.h"
 #include "paddle/phi/core/generator.h"
 #include "paddle/phi/core/kernel_registry.h"
 
@@ -26,52 +26,34 @@ void RReluKernel(const Context& dev_ctx,
                  const float lower,
                  const float upper,
                  bool is_test,
-                 DenseTensor* out,
+                 DenseTensor* out ,
                  DenseTensor* noise) {
+  using XPUType = typename XPUTypeTrait<T>::Type;
   const T* x_ptr = x.data<T>();
   T* o_ptr = dev_ctx.template Alloc<T>(out);
-  // T* n_ptr = dev_ctx.template Alloc<T>(noise);
-  T zero = static_cast<T>(0);
-  int numel = static_cast<int>(x.numel());
-  int i = 0;
+  //   T* n_ptr = dev_ctx.template Alloc<T>(noise); //   负斜率值，在训练场景为生成的随机数，测试场景为mid_val固定值
 
-  if (is_test) {
-    T mid_val = static_cast<T>((lower + upper) / 2.0);
-    for (i = 0; i < numel; i++) {
-      if (x_ptr[i] < zero) {
-        o_ptr[i] = mid_val * x_ptr[i];
-        // n_ptr[i] = mid_val;
-      } else {
-        o_ptr[i] = x_ptr[i];
-        // n_ptr[i] = 1.0;
-      }
-    }
+  PD_CHECK(is_test);  // 仅支持推理场景
 
-    return;
-  }
+#ifndef PADDLE_WITH_XPU_PLUGIN
+  PADDLE_THROW(errors::Unavailable("rrelu-xpu only support in xpu plugin, add -DWITH_XPU_PLUGIN=ON to build."));
+#else
+  int r = xpu::plugin::rrelu(dev_ctx.x_context(),
+                             reinterpret_cast<const XPUType*>(x.data<T>()),
+                             reinterpret_cast<XPUType*>(out->data<T>()),
+                             static_cast<int>(x.numel()),
+                             lower,
+                             upper);
 
-  auto engine = dev_ctx.GetGenerator()->GetCPUEngine();
+#endif
 
-  std::uniform_real_distribution<float> dist(lower, upper);
-
-  for (i = 0; i < numel; i++) {
-    if (x_ptr[i] < zero) {
-      T scale = static_cast<T>(dist(*engine));
-      o_ptr[i] = scale * x_ptr[i];
-      // n_ptr[i] = scale;
-    } else {
-      o_ptr[i] = x_ptr[i];
-      // n_ptr[i] = 1.0;
-    }
-  }
 }
 
 }  // namespace phi
 
 PD_REGISTER_KERNEL(rrelu,
-                   CPU,
+                   XPU,
                    ALL_LAYOUT,
                    phi::RReluKernel,
                    float,
-                   phi::dtype::float16,
-                   double) {}
+                   phi::dtype::float16) {}

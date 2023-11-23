@@ -145,6 +145,9 @@ DLL_EXPORT int layer_norm_act_fusion(Context* ctx,
                                      const float* bias,
                                      const Activation_t& act);
 
+template <typename T>
+DLL_EXPORT int rrelu(Context* ctx, const T* x, T* y, int len, float lower, float upper);
+
 }  // namespace plugin
 }  // namespace api
 }  // namespace xpu

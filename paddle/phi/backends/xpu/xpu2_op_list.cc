@@ -657,6 +657,7 @@ XPUOpMap& get_kl2_ops() {
       {"relu_grad",
        XPUKernelSet({phi::DataType::FLOAT32, phi::DataType::FLOAT16})},
       {"relu", XPUKernelSet({phi::DataType::FLOAT32, phi::DataType::FLOAT16})},
+      {"rrelu", XPUKernelSet({phi::DataType::FLOAT32, phi::DataType::FLOAT16})},
       {"reshape2_grad",
        XPUKernelSet({phi::DataType::FLOAT64,
                      phi::DataType::FLOAT16,
